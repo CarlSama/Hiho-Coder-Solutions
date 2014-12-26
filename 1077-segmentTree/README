@@ -1,0 +1,11 @@
+Considering the multiple operations on segment tree, 
+	this is all about the creation and manipulation of segment tree.
+	(learned for Li.)
+
+After receiving n elem to build segment tree, we can find all the elem would 
+	be assigned as leaf node, besides there wouldn't appear a internal node with
+	only one child(think about it).
+	So, this is an more stronger complate binary tree !
+	Array can be used as the relation between node is quit straightforward.
+
+Recurrsion method can be used as the update is from bottom to top. 
