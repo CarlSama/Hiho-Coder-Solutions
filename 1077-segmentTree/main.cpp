@@ -1,89 +1,88 @@
 #include<iostream>
-#include<vector>
-#include<cstdio>
+#include<stdio.h>
 #include<algorithm>
-
 using namespace std;
 
 struct SegTNode{
 	int weight;
 	int lInterval,rInterval;
+	struct SegTNode *left,*right;
+	SegTNode(int w, int lIt,int rIt,SegTNode *l,SegTNode *r):weight(w),lInterval(lIt),rInterval(rIt),left(l),right(r){}
 };
 
 /*
  * i means the start position 
  * left and right means the interval of vector
  */
-void build(int i,int left,int right,vector<SegTNode> &segTree,vector<int> &weight){
+SegTNode *build(int left,int right,int *weight){
 	if(right <  left)
-		return;
+		return 0;
 	if(right == left){
-		segTree[i].weight = weight[left];
-		segTree[i].lInterval = segTree[i].rInterval = left;
-		return ;
+		SegTNode *root = new SegTNode(weight[left],left,left,0,0);
+		return root;
 	}
 
+	SegTNode *root = new SegTNode(0,left,right,0,0);
 	int mid = (right+left)>>1;
-	build(i<<1,left,mid,segTree,weight);
-	build((i<<1)+1,mid+1,right,segTree,weight);
-	
-	segTree[i].weight = min(segTree[i<<1].weight, segTree[(i<<1)+1].weight); 
-	segTree[i].lInterval = left;
-	segTree[i].rInterval = right;
+	root->left = build(left,mid,weight);
+	root->right = build(mid+1,right,weight);
+	root->weight = min(root->left->weight, root->right->weight); 
+	return root;
 }
-	
-int query(int start, int left ,int right, vector<SegTNode> &segTree){
-	if(segTree[start].lInterval==left && segTree[start].rInterval==right)
-		return segTree[start].weight;
 
-	int mid = (segTree[start].lInterval+segTree[start].rInterval)>>1;
+int query(int left ,int right, SegTNode *root){
+	if(NULL==root)
+		return 0;
+
+	if(root->lInterval==left && root->rInterval==right)
+		return root->weight;
+
+	int mid = (root->lInterval+root->rInterval)>>1;
 	//We assume left and right must be in our segment.
 	if(right <= mid){
-		return query(start<<1,left,right,segTree);
+		return query(left,right,root->left);
 	}else if(left > mid){
-		return query((start<<1)+1,left,right,segTree);
+		return query(left,right,root->right);
 	}else{
-		int lMin = query(start<<1,left,mid,segTree);
-		int rMin = query((start<<1)+1,mid+1,right,segTree);
+		int lMin = query(left,mid,root->left);
+		int rMin = query(mid+1,right,root->right);
 		return lMin<rMin?lMin:rMin;
 	}
 }
 
 
-void modify(int start, int idx, int weight, vector<SegTNode> &segTree){
-	if(segTree[start].lInterval==idx && segTree[start].rInterval==idx){
-		segTree[start].weight = weight;
-		return ;
+void modify(int idx, int weight, SegTNode *root){
+	if(NULL==root)
+		return;
+
+	if(root->lInterval==idx && root->rInterval==idx){
+		root->weight = weight;
+		return;
 	}
 
-	int mid = (segTree[start].lInterval+segTree[start].rInterval)>>1;
-	if(idx <= mid){
-		modify(start<<1, idx, weight,segTree);
+	if(idx <= root->left->rInterval){
+		modify(idx, weight,root->left);
 	}else {
-		modify((start<<1)+1,idx,weight,segTree);
+		modify(idx,weight,root->right);
 	}
 
-	segTree[start].weight = min(segTree[start<<1].weight,segTree[(start<<1)+1].weight); 
+	root->weight = min(root->left->weight,root->right->weight); 
 }
 
 int main(){
 	freopen("info","r",stdin);
-	int n, times, i, sumLen;
+	int n, times, i=1;
 	cin>>n;
 	if(n < 1)
 		return 1;
 
-	sumLen = (n<<1)-1; 
-	vector<int> weight(n+1);
-	vector<SegTNode> segTree(sumLen+1);//We store the tree from [1] to [2*n+1]
-		//The weight are stored to leaf, which range from n to 2n+1
-	i = 1;
+	int* weight = new int[n+1];
 	while(i <= n){
 		cin>>weight[i];//The interval starts at 1
 		i++;
 	}
 
-	build(1,1,n,segTree,weight);
+	SegTNode *root = build(1,n,weight);
 
 	cin>>times;
 	while(times--){
@@ -92,13 +91,11 @@ int main(){
 		if(type==0){
 			int left,right;
 			cin>>left>>right;
-			if(left>=1 && right <=n)
-				cout<<query(1,left,right,segTree)<<endl;
+			cout<<query(left,right,root)<<endl;
 		}else{//type == 1
 			int idx,newWeight;
 			cin>>idx>>newWeight;
-			if(idx>=1 && idx<=n)
-				modify(1,idx,newWeight,segTree);
+			modify(idx,newWeight,root);
 		}
 	}
 	return 0;
