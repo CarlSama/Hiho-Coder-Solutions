@@ -37,16 +37,12 @@ int query(int left ,int right, SegTNode *root){
 	if(root->lInterval==left && root->rInterval==right)
 		return root->weight;
 
-	int mid = (root->lInterval+root->rInterval)>>1;
-	//We assume left and right must be in our segment.
-	if(right <= mid){
+	if(right <= root->left->rInterval){
 		return query(left,right,root->left);
-	}else if(left > mid){
+	}else if(left >= root->right->lInterval){
 		return query(left,right,root->right);
 	}else{
-		int lMin = query(left,mid,root->left);
-		int rMin = query(mid+1,right,root->right);
-		return lMin<rMin?lMin:rMin;
+		return min(query(left,root->left->rInterval,root->left),query(root->right->lInterval,right,root->right));
 	}
 }
 
