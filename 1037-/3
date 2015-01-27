@@ -1,0 +1,60 @@
+#include<iostream>
+#include<cstdio>
+#include<ctime>
+#include<cstdlib>
+#include<queue>
+
+using namespace std;
+
+/*
+ * FBI WARNING
+ * We can use randomize the achive 0(n*n)
+ */
+
+int level;
+/*
+ * bonus[i][j] means the ith level's jth room
+ */
+int bonus[111][111];
+int best[111][111];
+
+int solve(){
+	for(int i=1;i<=level;i++){
+		for(int j=1;j<=i;j++){
+			if(j == 1){
+				best[i][j] = best[i-1][j];
+			}else if(j==level){
+				best[i][j] = best[i-1][j-1];
+			}else{
+				best[i][j] = max(best[i-1][j-1],best[i-1][j]) + bonus[i][j];
+			}
+		}
+	}
+}
+
+
+int show(){
+	int ans = best[level][1];
+	for(int i=1;i<=level;i++){
+		ans = max(ans,best[level][i]);
+	}
+	return ans;
+}
+
+int main(){
+	freopen("info","r",stdin);
+	cin>>level;
+	for(int i=1;i<=level;i++){
+		for(int j=1;j<=i;j++){
+			cin>>bonus[i][j];
+		}
+	}
+
+	solve();
+	printf("%d\n",show());
+
+	return 0;
+}
+	
+
+
